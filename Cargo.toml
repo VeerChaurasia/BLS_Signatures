@@ -1,0 +1,8 @@
+[package]
+name = "BLS"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+blst = "0.3.14"
+rand = "0.9.1"
