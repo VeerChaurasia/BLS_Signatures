@@ -23,18 +23,36 @@ fn agg_signatures(signatures:&[Signature])->Signature{
         .expect("Failed to aggregate signatures")
         .to_signature()
 }
-fn verify_agg_signatures(agg_signatures:&Signature,ps:&[PublicKey],message:&[u8]){
-    let refs: Vec<&PublicKey> = pks.iter().collect();
+fn verify_agg_signatures(agg_signatures:&Signature,ps:&[PublicKey],message:&[u8])->bool{
+    let refs: Vec<&PublicKey> = ps.iter().collect();
     let messages=vec![message; ps.len()];
-    let result=agg_signatures.aggregate_verify(true, &messages, DST, &refs, true);
+    let verified=agg_signatures.aggregate_verify(true, &messages, DST, &refs, true);
+    verified == blst::BLST_ERROR::BLST_SUCCESS
 }
 
-
-
-
 fn main() {
-    let (secret_key, public_key) = key_generation();
-    println!("Key pair generated successfully:{:?},{:?}",secret_key,public_key);
+    let message=b"Hail Ethereum";
+    let mut secret_keys = Vec::new();
+    let mut public_keys = Vec::new();
+    let mut signatures = Vec::new();
+    for _ in 0..10{
+        let(sk,p)=key_generation();
+        let sig=signing(&sk, message);
+        secret_keys.push(sk);
+
+        public_keys.push(p);
+        
+        signatures.push(sig);
+    }
+    // public_keys[0] = key_generation().1; This will make the signatur invalid
+    let agg_sigs=agg_signatures(&signatures);
+    let result=verify_agg_signatures(&agg_sigs, &public_keys, message);
+    if result{
+        println!("Valid Signature");
+    }
+    else{
+        println!("Signature is not valid");
+    }
 }
 
 
